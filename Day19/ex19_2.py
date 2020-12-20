@@ -2,8 +2,6 @@ import re
 import sys
 
 # Parsing des rules
-from pprint import pprint
-
 raw_rules = {}
 line = input()
 while line != "":
@@ -44,9 +42,11 @@ def parse_rule(raw_rule):
         return r"(" + "|".join(parse_rule(sub_rule) for sub_rule in sub_rules) + ")"
 
 
-# Pour 8 et 11, on utilise la notation +
+# Pour 8 on utilise la notation +
 rules['8'] = parse_rule('42') + "+"
-rules['11'] = parse_rule('42') + "+" + parse_rule('31') + "+"
+# Pour 11, il faut le même nombre de 42 que de 31
+rules['11'] = "(" + "|".join(
+    parse_rule('42') + "{{{}}}".format(x) + parse_rule('31') + "{{{}}}".format(x) for x in range(1, 10)) + ")"
 
 rules['0'] = r"^" + parse_rule(raw_rules['0']) + "$"
 
