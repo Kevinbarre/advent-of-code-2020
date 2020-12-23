@@ -1,21 +1,22 @@
 input_cups = "389125467"  # Example input
 # input_cups = "853192647"  # My input
 
-NB_CUPS = len(input_cups)
-NB_MOVES = 10
+NB_CUPS = 1000000
+NB_MOVES = 10000000
 
 input_cups = [int(c) for c in input_cups]
+input_cups += [cup for cup in range(max(input_cups), NB_CUPS + 1)]
 
 
 def move(cups, current):
     current_label = cups[current]
-    print("Cups: {}".format(" ".join("({})".format(c) if c == current_label else "{}".format(c) for c in cups)))
+    # print("Cups: {}".format(" ".join("({})".format(c) if c == current_label else "{}".format(c) for c in cups)))
 
     picked, remaining = picks_up(cups, current)
-    print("Pick up: {}".format(", ".join(str(p) for p in picked)))
+    # print("Pick up: {}".format(", ".join(str(p) for p in picked)))
 
-    destination = get_destination_cup(remaining, current_label)
-    print("Destination: {}".format(destination))
+    destination = get_destination_cup(picked, current_label)
+    # print("Destination: {}".format(destination))
 
     destination_index = remaining.index(destination)
     next_cups = remaining[:destination_index + 1] + picked + remaining[destination_index + 1:]
@@ -44,9 +45,9 @@ def picks_up(cups, current):
     return picked, remaining
 
 
-def get_destination_cup(remaining_cups, current_label):
+def get_destination_cup(picked_cups, current_label):
     destination_label = get_destination_label(current_label)
-    while destination_label not in remaining_cups:
+    while destination_label in picked_cups:
         destination_label = get_destination_label(destination_label)
     return destination_label
 
@@ -63,9 +64,15 @@ for i in range(NB_MOVES):
     print("-- Move {} --".format(i + 1))
     input_cups, current_index = move(input_cups, current_index)
 
-print("-- Final --")
-print("Cups: {}".format(
-    " ".join("({})".format(c) if i == current_index else "{}".format(c) for i, c in enumerate(input_cups))))
+# print("-- Final --")
+# print("Cups: {}".format(
+#     " ".join("({})".format(c) if i == current_index else "{}".format(c) for i, c in enumerate(input_cups))))
 
 index_one = input_cups.index(1)
-print("Result: {}".format("".join(str(c) for c in input_cups[index_one + 1:] + input_cups[:index_one])))
+if index_one < NB_CUPS - 2:
+    result = input_cups[index_one + 1] * input_cups[index_one + 2]
+elif index_one == NB_CUPS - 2:
+    result = input_cups[index_one + 1] * input_cups[0]
+else:
+    result = input_cups[0] * input_cups[1]
+print("Result: {}".format(result))
