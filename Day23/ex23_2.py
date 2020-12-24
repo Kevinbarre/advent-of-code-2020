@@ -1,48 +1,57 @@
-input_cups = "389125467"  # Example input
-# input_cups = "853192647"  # My input
+# input_cups = "389125467"  # Example input
+input_cups = "853192647"  # My input
 
 NB_CUPS = 1000000
 NB_MOVES = 10000000
 
 input_cups = [int(c) for c in input_cups]
-input_cups += [cup for cup in range(max(input_cups), NB_CUPS + 1)]
+
+# Seconde liste qui contient la cup qui suit celle à la position i
+# Par exemple pour l'input d'exemple et NB_CUPS = 2:
+# On aura input_cups = [3, 8, 9, 1, 2, 5, 4, 6, 7, 10, 11, 12]
+#       et next_cups = [0, 2, 5, 8, 6, 4, 7, 10, 9, 1, 11, 12, 3]
+# Car:
+#     - La cup qui suit 1 est next_cups[1] = 2
+#     - La cup qui suit 2 est next_cups[2] = 5
+#     - La cup qui suit 3 est next_cups[3] = 8
+#     - etc ...
+next_cups = [0 for i in range(len(input_cups) + 1)]
+
+# On alimente la cup suivante pour l'input sauf le dernier
+for i in range(len(input_cups) - 1):
+    next_cups[input_cups[i]] = input_cups[i + 1]
+
+# Pour le dernier, on faire suivre sur la première cup ajoutée après l'input
+next_cups[input_cups[-1]] = len(input_cups) + 1
+
+# Pour toutes les autres cups ajoutées après l'input (sauf la toute dernière) on faire suivre sur la suivante
+for i in range(len(input_cups) + 1, NB_CUPS):
+    next_cups.append(i + 1)
+
+# Enfin on fait boucler la toute dernière cup sur la première de l'input
+next_cups.append(input_cups[0])
+
+# On alimente l'input avec les cups suivantes
+input_cups += [cup for cup in range(max(input_cups) + 1, NB_CUPS + 1)]
 
 
-def move(cups, current):
-    current_label = cups[current]
-    # print("Cups: {}".format(" ".join("({})".format(c) if c == current_label else "{}".format(c) for c in cups)))
-
-    picked, remaining = picks_up(cups, current)
+def move(current_label):
+    global next_cups
+    picked = [first := next_cups[current_label], second := next_cups[first], next_cups[second]]
     # print("Pick up: {}".format(", ".join(str(p) for p in picked)))
+
+    # On recolle le current avec celui qui suivait le dernier picked
+    next_cups[current_label] = next_cups[picked[-1]]
 
     destination = get_destination_cup(picked, current_label)
     # print("Destination: {}".format(destination))
 
-    destination_index = remaining.index(destination)
-    next_cups = remaining[:destination_index + 1] + picked + remaining[destination_index + 1:]
-    next_current_index = next_cups.index(current_label) + 1
-    if next_current_index == NB_CUPS:
-        next_current_index = 0
-    return next_cups, next_current_index
+    # On vient greffer les picked après la destination
+    next_destination = next_cups[destination]
+    next_cups[destination] = picked[0]
+    next_cups[picked[-1]] = next_destination
 
-
-def picks_up(cups, current):
-    if current < NB_CUPS - 3:
-        picked = cups[current + 1:current + 4]
-        remaining = cups[:current + 1] + cups[current + 4:]
-    elif current == NB_CUPS - 3:
-        picked = cups[-2:] + cups[:1]
-        remaining = cups[1:-2]
-    elif current == NB_CUPS - 2:
-        picked = cups[-1:] + cups[:2]
-        remaining = cups[2:-1]
-    else:
-        picked = cups[:3]
-        remaining = cups[3:]
-    # print("Cups", cups)
-    # print("Picked", picked)
-    # print("Remaining", remaining)
-    return picked, remaining
+    return next_cups[current_label]
 
 
 def get_destination_cup(picked_cups, current_label):
@@ -59,20 +68,16 @@ def get_destination_label(current_label):
     return destination_label
 
 
-current_index = 0
+current = input_cups[0]
 for i in range(NB_MOVES):
-    print("-- Move {} --".format(i + 1))
-    input_cups, current_index = move(input_cups, current_index)
+    # print("-- Move {} --".format(i + 1))
+    # print("Next Cups Before: {}".format(
+    #     " ".join("({})".format(c) if c == current else "{}".format(c) for c in next_cups[1:])))
+    # print("Cups: {}".format(" ".join("({})".format(c) if c == current_label else "{}".format(c) for c in cups)))
+    current = move(current)
 
 # print("-- Final --")
-# print("Cups: {}".format(
-#     " ".join("({})".format(c) if i == current_index else "{}".format(c) for i, c in enumerate(input_cups))))
+# print("Next Cups : {}".format(" ".join("({})".format(c) if c == current else "{}".format(c) for c in next_cups[1:])))
 
-index_one = input_cups.index(1)
-if index_one < NB_CUPS - 2:
-    result = input_cups[index_one + 1] * input_cups[index_one + 2]
-elif index_one == NB_CUPS - 2:
-    result = input_cups[index_one + 1] * input_cups[0]
-else:
-    result = input_cups[0] * input_cups[1]
+result = (next_one := next_cups[1]) * next_cups[next_one]
 print("Result: {}".format(result))
